@@ -1,0 +1,11 @@
+kind: token
+version: v2
+metadata:
+  name: msteams-webhook-k8s
+spec:
+  roles: [Bot]
+  bot_name: msteams-webhook
+  join_method: kubernetes
+  kubernetes:
+    allow:
+      - service_account: "teleport-plugins:teleport-msteams-webhook"

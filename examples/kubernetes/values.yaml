@@ -1,0 +1,31 @@
+# Helm values for deploying teleport-msteams-webhook via the Kubernetes join method.
+# Replace all "teleport.example.com" references with your Teleport proxy address.
+#
+# Install:
+#   kubectl create namespace teleport-plugins
+#   kubectl apply -f webhook-secret.yaml
+#   helm install teleport-msteams-webhook \
+#     oci://ghcr.io/jsabo/charts/teleport-msteams-webhook \
+#     --namespace teleport-plugins -f values.yaml
+
+image:
+  tag: "latest"  # or pin to a specific release, e.g. "0.1.6"
+
+tbot:
+  teleportAddr: "teleport.example.com:443"
+  joinMethod: kubernetes
+  botName: msteams-webhook
+  token: msteams-webhook-k8s
+  image:
+    tag: "17"  # set to match your Teleport cluster version, e.g. "18.8.2"
+
+teleport:
+  addr: "teleport.example.com:443"
+
+config:
+  webhookSecretName: teleport-msteams-webhook-secrets
+  roleToRecipients:
+    # Add per-role entries above "*" to route specific roles to different channels:
+    # "dev": ["env:TEAMS_WEBHOOK_DEV"]
+    "*":
+      - "env:TEAMS_WEBHOOK_GENERAL"

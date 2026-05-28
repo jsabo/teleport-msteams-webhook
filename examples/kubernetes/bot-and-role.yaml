@@ -1,0 +1,18 @@
+kind: role
+version: v7
+metadata:
+  name: msteams-webhook
+spec:
+  allow:
+    rules:
+      - resources: [access_request]
+        verbs: [list, read]
+      - resources: [role]
+        verbs: [list, read]
+---
+kind: bot
+version: v1
+metadata:
+  name: msteams-webhook
+spec:
+  roles: [msteams-webhook]
