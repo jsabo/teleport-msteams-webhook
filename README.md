@@ -72,8 +72,6 @@ spec:
     rules:
       - resources: [access_request]
         verbs: [list, read]
-      - resources: [access_monitoring_rule]
-        verbs: [list, read]
       - resources: [role]
         verbs: [list, read]
 ---
@@ -84,6 +82,8 @@ metadata:
 spec:
   roles: [msteams-webhook]
 ```
+
+The `role` permission is optional — it enables the plugin to show allowed SSH logins alongside each role in the notification card. Without it, cards still post but the Login(s) field is omitted.
 
 See [Machine & Workload Identity — Getting Started](https://goteleport.com/docs/machine-workload-identity/getting-started/) for full bot creation documentation.
 
