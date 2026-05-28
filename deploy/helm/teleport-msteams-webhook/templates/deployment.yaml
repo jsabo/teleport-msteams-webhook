@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "teleport-msteams-webhook.fullname" . }}
+  labels:
+    {{- include "teleport-msteams-webhook.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "teleport-msteams-webhook.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "teleport-msteams-webhook.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "teleport-msteams-webhook.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+
+      # Shared emptyDir volume for the identity file that tbot writes and the
+      # plugin reads. tbot runs as an init container so the identity is ready
+      # before the plugin starts, and as a sidecar to keep it refreshed.
+      volumes:
+        - name: identity
+          emptyDir: {}
+        - name: config
+          configMap:
+            name: {{ include "teleport-msteams-webhook.fullname" . }}
+
+      initContainers:
+        - name: tbot-init
+          image: "{{ .Values.tbot.image.repository }}:{{ .Values.tbot.image.tag }}"
+          imagePullPolicy: {{ .Values.tbot.image.pullPolicy }}
+          args:
+            - start
+            - --config=/etc/tbot/tbot.yaml
+            - --oneshot
+          volumeMounts:
+            - name: identity
+              mountPath: /var/run/secrets/teleport/identity
+            - name: config
+              mountPath: /etc/tbot
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+
+      containers:
+        # tbot sidecar keeps the identity file refreshed as certs rotate.
+        - name: tbot
+          image: "{{ .Values.tbot.image.repository }}:{{ .Values.tbot.image.tag }}"
+          imagePullPolicy: {{ .Values.tbot.image.pullPolicy }}
+          args:
+            - start
+            - --config=/etc/tbot/tbot.yaml
+          volumeMounts:
+            - name: identity
+              mountPath: /var/run/secrets/teleport/identity
+            - name: config
+              mountPath: /etc/tbot
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+
+        # Plugin container.
+        - name: teleport-msteams-webhook
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - -config=/etc/teleport-msteams-webhook/plugin.toml
+          volumeMounts:
+            - name: identity
+              mountPath: /var/run/secrets/teleport/identity
+            - name: config
+              mountPath: /etc/teleport-msteams-webhook
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

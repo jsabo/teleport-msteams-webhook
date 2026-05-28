@@ -1,0 +1,20 @@
+# Build outputs
+/teleport-msteams-webhook
+dist/
+
+# Go workspace (local dev only — not for CI)
+go.work
+go.work.sum
+
+# macOS
+.DS_Store
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test artifacts
+*.test
+coverage.out

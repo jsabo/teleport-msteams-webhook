@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "teleport-msteams-webhook.fullname" . }}
+  labels:
+    {{- include "teleport-msteams-webhook.labels" . | nindent 4 }}
+data:
+  tbot.yaml: |
+    version: v2
+    auth_server: {{ .Values.tbot.teleportAddr | quote }}
+    onboarding:
+      join_method: {{ .Values.tbot.joinMethod | quote }}
+      token: {{ .Values.tbot.token | quote }}
+    storage:
+      type: memory
+    outputs:
+      - type: identity
+        destination:
+          type: directory
+          path: /var/run/secrets/teleport/identity
+
+  plugin.toml: |
+    [teleport]
+    addr = {{ .Values.teleport.addr | quote }}
+    identity = "/var/run/secrets/teleport/identity/identity"
+    refresh_identity = true
+
+    [log]
+    severity = {{ .Values.config.log.severity | quote }}
+
+    [msteams]
+    {{- if .Values.config.msteams.logoURL }}
+    logo_url = {{ .Values.config.msteams.logoURL | quote }}
+    {{- end }}
+    disable_logo = {{ .Values.config.msteams.disableLogo }}
+
+    [role_to_recipients]
+    {{- range $role, $urls := .Values.config.roleToRecipients }}
+    {{ $role | quote }} = [{{ range $i, $u := $urls }}{{ if $i }}, {{ end }}{{ $u | quote }}{{ end }}]
+    {{- end }}

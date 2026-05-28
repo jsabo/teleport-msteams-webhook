@@ -1,0 +1,27 @@
+[Unit]
+Description=Teleport MS Teams Webhook Plugin
+Documentation=https://github.com/jsabo/teleport-msteams-webhook
+After=network-online.target tbot.service
+Wants=network-online.target
+Requires=tbot.service
+
+[Service]
+Type=simple
+User=teleport-plugin
+Group=teleport-plugin
+ExecStart=/usr/local/bin/teleport-msteams-webhook -config /etc/teleport-msteams-webhook.toml
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=teleport-msteams-webhook
+
+# Harden the service
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/teleport/plugins/msteams-webhook
+
+[Install]
+WantedBy=multi-user.target

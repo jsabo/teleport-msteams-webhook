@@ -1,0 +1,57 @@
+version: 2
+
+project_name: teleport-msteams-webhook
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: teleport-msteams-webhook
+    main: ./cmd/teleport-msteams-webhook
+    binary: teleport-msteams-webhook
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    files:
+      - README.md
+      - assets/teleport-logo.png
+      - deploy/systemd/*
+      - deploy/helm/**
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+
+release:
+  github:
+    owner: jsabo
+    name: teleport-msteams-webhook

@@ -1,0 +1,16 @@
+apiVersion: v2
+name: teleport-msteams-webhook
+description: Teleport access request notifications for Microsoft Teams via incoming webhooks
+type: application
+version: 0.1.0
+appVersion: "latest"
+keywords:
+  - teleport
+  - msteams
+  - access-requests
+  - notifications
+home: https://github.com/jsabo/teleport-msteams-webhook
+sources:
+  - https://github.com/jsabo/teleport-msteams-webhook
+maintainers:
+  - name: jsabo

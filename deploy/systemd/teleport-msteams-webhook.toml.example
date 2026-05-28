@@ -1,0 +1,33 @@
+[teleport]
+# Address of your Teleport Proxy (host:port).
+addr = "teleport.example.com:443"
+
+# Path to the identity file written by tbot.
+identity = "/var/lib/teleport/plugins/msteams-webhook/identity"
+
+# Auto-reload the identity file when tbot renews it — no restart needed.
+refresh_identity = true
+
+[log]
+output   = "stderr"
+severity = "info"   # debug | info | warn | error
+
+[msteams]
+# Optional: URL of a publicly accessible PNG/JPG for the card logo.
+# Defaults to the Teleport brand logo hosted in this repository.
+# Set disable_logo = true to omit the image entirely.
+# logo_url    = "https://raw.githubusercontent.com/jsabo/teleport-msteams-webhook/main/assets/teleport-logo.png"
+# disable_logo = false
+
+# Map Teleport roles to Teams incoming webhook URLs.
+# Any role not listed falls back to the "*" wildcard entry.
+# Multiple URLs per role fan-out to multiple channels.
+#
+# Teams incoming webhook URLs are created via the "Post to a channel when a
+# webhook request is received" Power Automate Workflow template (2-click setup
+# per channel — no Azure AD registration required).
+[role_to_recipients]
+"dev"            = ["https://prod.westus2.logic.azure.com/.../dev-requests"]
+"database-admin" = ["https://prod.westus2.logic.azure.com/.../dba-team",
+                    "https://prod.westus2.logic.azure.com/.../security"]
+"*"              = ["https://prod.westus2.logic.azure.com/.../access-requests-general"]

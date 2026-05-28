@@ -1,0 +1,21 @@
+version: v2
+
+# Address of your Teleport Auth or Proxy server.
+auth_server: teleport.example.com:443
+
+# How tbot joins the cluster on first run.
+# "token" is simplest for initial setup; use "iam" on AWS or "gcp" on GCP in production.
+# See join methods: https://goteleport.com/docs/reference/deployment/join-methods/
+onboarding:
+  join_method: token
+  token: <join-token>  # output of: tctl tokens add --type=bot --bot-name=msteams-webhook --ttl=1h
+
+storage:
+  type: directory
+  path: /var/lib/tbot
+
+outputs:
+  - type: identity
+    destination:
+      type: directory
+      path: /var/lib/teleport/plugins/msteams-webhook
