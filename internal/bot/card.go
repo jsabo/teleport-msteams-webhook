@@ -78,7 +78,7 @@ func BuildCard(reqID string, data RequestData, webProxyURL *url.URL, logoURL str
 		body = append(body, imageElement{
 			Type:                "Image",
 			URL:                 logoURL,
-			Size:                "Medium",
+			Size:                "Stretch",
 			HorizontalAlignment: "Center",
 		})
 	}
