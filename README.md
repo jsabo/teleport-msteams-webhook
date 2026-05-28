@@ -21,12 +21,20 @@ If you need interactive approve/deny buttons in Teams, use the official plugin. 
 
 **Create an incoming webhook for each Teams channel you want to notify:**
 
-1. In the channel, open **Apps** → search for **Workflows** → select **Post to a channel when a webhook request is received**.
-2. Follow the prompts. Copy the generated webhook URL — it looks like `https://prod.westus2.logic.azure.com/workflows/...`.
+1. In the channel, click **`···`** (More options) next to the channel name and select **Workflows**. If you don't see it, click the **+** icon in the channel toolbar and search for **Workflows**.
+2. Search for **"Post to a channel when a webhook request is received"** and select it.
+3. Teams pre-fills a name like **"Send webhook alerts to [channel-name]"** — keep it or rename it, then click **Next** → **Add workflow**.
+4. When setup completes the workflow shows as **Active**. Click **Copy webhook link** to grab the URL.
 
-Repeat for each channel. Paste these URLs into `role_to_recipients` in your config.
+The URL format varies by Teams plan:
+- Enterprise Microsoft 365: `https://prod2.westus2.logic.azure.com/workflows/...`
+- Personal / free Teams: `https://default[...].environment.api.powerplatform.com/...`
 
-> **Note:** Microsoft deprecated Office 365 Connectors in 2024. The Power Automate Workflows method above is the current replacement and uses the same POST interface.
+Both formats work identically with this plugin. Treat the URL as a secret — anyone with it can post to the channel.
+
+Repeat for each channel. Paste the URLs into `role_to_recipients` in your config.
+
+> **Note:** Microsoft deprecated Office 365 Connectors in 2024. The Power Automate Workflows method above is the current replacement.
 
 ---
 
