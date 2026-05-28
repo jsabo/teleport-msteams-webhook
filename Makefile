@@ -4,7 +4,7 @@ COMMIT     ?= $(shell git rev-parse --short HEAD 2>/dev/null || echo "none")
 DATE       ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 LDFLAGS    := -X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE)
 
-.PHONY: build test vet lint clean snapshot workspace
+.PHONY: build test vet lint clean snapshot
 
 build:
 	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -o $(BINARY) ./cmd/$(BINARY)
@@ -24,11 +24,3 @@ clean:
 
 snapshot:
 	goreleaser release --snapshot --clean
-
-# Set up go.work for local development against a checked-out ../teleport/api
-workspace:
-	@if [ ! -f go.work ]; then \
-		go work init . ../teleport/api && echo "go.work created"; \
-	else \
-		echo "go.work already exists"; \
-	fi

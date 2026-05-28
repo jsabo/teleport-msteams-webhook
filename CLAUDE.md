@@ -17,23 +17,6 @@ internal/bot/                           Card builder, HTTP POST helper, Bot type
 internal/plugin/plugin.go               Reconnecting watcher loop; event dispatch; routing
 ```
 
-## Critical constraint: teleport/api only
-
-This module depends only on `github.com/gravitational/teleport/api` — NOT the full
-`github.com/gravitational/teleport` module. The full module cannot be assumed to be
-checked out locally, and resolving it at build time is impractical.
-
-All routing, event watching, and credential logic is implemented from scratch in
-`internal/plugin/plugin.go` and `internal/config/config.go` using only the API types.
-
-## go.work for local development
-
-`go.work` references `../teleport/api` (gitignored; not committed). This lets you work
-against a local checkout of `github.com/gravitational/teleport`. When absent, `go.mod`
-resolves the pseudo-version from the module proxy.
-
-Create it with: `make workspace`
-
 ## Recipient routing
 
 Two-layer fallback (no access monitoring rules):

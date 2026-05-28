@@ -404,12 +404,6 @@ make test    # run all unit tests
 make vet     # go vet
 ```
 
-For local development against a checked-out `../teleport` repo:
-
-```bash
-make workspace   # creates go.work referencing ../teleport/api
-```
-
 ## License
 
 [Apache 2.0](LICENSE)
