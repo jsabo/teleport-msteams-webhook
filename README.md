@@ -4,6 +4,14 @@ Posts Microsoft Teams Adaptive Card notifications when Teleport access requests 
 
 Uses Teams **incoming webhooks** — a URL a channel owner creates in ~2 clicks via the Power Automate Workflows app. No Azure AD registration, no Global Admin approval, no custom app package.
 
+<table>
+<tr>
+<td align="center"><img src="assets/card-pending.png" width="220" alt="Pending card"/><br/><b>Pending</b></td>
+<td align="center"><img src="assets/card-approved.png" width="220" alt="Approved card"/><br/><b>Approved</b></td>
+<td align="center"><img src="assets/card-denied.png" width="220" alt="Denied card"/><br/><b>Denied</b></td>
+</tr>
+</table>
+
 ## How it differs from the official `msteams` plugin
 
 | | teleport-msteams-webhook | Official msteams plugin |
