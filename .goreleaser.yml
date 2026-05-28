@@ -2,16 +2,17 @@ version: 2
 
 project_name: teleport-msteams-webhook
 
-before:
-  hooks:
-    - go mod tidy
-
 builds:
   - id: teleport-msteams-webhook
     main: ./cmd/teleport-msteams-webhook
     binary: teleport-msteams-webhook
     env:
       - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
     goos:
       - linux
       - darwin
@@ -19,39 +20,41 @@ builds:
     goarch:
       - amd64
       - arm64
-    ldflags:
-      - -s -w
-      - -X main.version={{.Version}}
-      - -X main.commit={{.Commit}}
-      - -X main.date={{.Date}}
+    ignore:
+      - goos: windows
+        goarch: arm64
 
 archives:
   - id: default
-    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    formats:
-      - tar.gz
+    name_template: "teleport-msteams-webhook_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     format_overrides:
       - goos: windows
-        formats:
-          - zip
+        formats: [zip]
     files:
+      - LICENSE
       - README.md
       - assets/teleport-logo.png
       - deploy/systemd/*
-      - deploy/helm/**
 
 checksum:
   name_template: checksums.txt
-
-changelog:
-  sort: asc
-  filters:
-    exclude:
-      - "^docs:"
-      - "^test:"
-      - "^chore:"
+  algorithm: sha256
 
 release:
   github:
     owner: jsabo
     name: teleport-msteams-webhook
+  draft: false
+  prerelease: auto
+  name_template: "teleport-msteams-webhook {{.Tag}}"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - Merge pull request
+      - Merge branch

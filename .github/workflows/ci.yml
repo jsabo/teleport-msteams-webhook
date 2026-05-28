@@ -7,22 +7,25 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: true
+
+      - name: Build
+        run: CGO_ENABLED=0 go build ./...
 
       - name: Vet
         run: go vet ./...
 
       - name: Test
         run: go test -race ./...
-
-      - name: Build
-        run: |
-          CGO_ENABLED=0 go build ./cmd/teleport-msteams-webhook
