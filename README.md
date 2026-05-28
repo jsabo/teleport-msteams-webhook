@@ -89,6 +89,64 @@ See [Machine & Workload Identity — Getting Started](https://goteleport.com/doc
 
 ---
 
+## Kubernetes / Helm install
+
+The Helm chart deploys two containers in one pod sharing an `emptyDir` identity volume:
+- **tbot** (init container + sidecar) — joins the cluster and keeps the identity file refreshed
+- **teleport-msteams-webhook** — reads the identity file and watches for access request events
+
+Ready-to-use example files are in [`examples/kubernetes/`](examples/kubernetes/).
+
+### Step 1 — Apply Teleport resources
+
+```bash
+tctl create -f examples/kubernetes/bot-and-role.yaml
+tctl create -f examples/kubernetes/token.yaml
+```
+
+See [Kubernetes join method](https://goteleport.com/docs/machine-workload-identity/deployment/kubernetes/) and [join methods overview](https://goteleport.com/docs/reference/deployment/join-methods/).
+
+### Step 2 — Create the namespace and webhook Secret
+
+Fill in your Teams webhook URL in `examples/kubernetes/webhook-secret.yaml`, then:
+
+```bash
+kubectl create namespace teleport-plugins
+kubectl apply -f examples/kubernetes/webhook-secret.yaml
+```
+
+### Step 3 — Install the Helm chart
+
+Edit `examples/kubernetes/values.yaml` — replace `teleport.example.com` with your proxy address and set `tbot.image.tag` to match your Teleport version, then:
+
+```bash
+helm install teleport-msteams-webhook \
+  oci://ghcr.io/jsabo/charts/teleport-msteams-webhook \
+  --namespace teleport-plugins \
+  -f examples/kubernetes/values.yaml
+```
+
+### Step 4 — What the chart creates
+
+| Resource | Purpose |
+|---|---|
+| Deployment | tbot init container + sidecar + plugin container |
+| ConfigMap | Rendered `tbot.yaml` and `plugin.toml` |
+| ServiceAccount | Used by tbot for the Kubernetes TokenReview join |
+
+### Step 5 — Upgrade / uninstall
+
+```bash
+# Upgrade
+helm upgrade teleport-msteams-webhook oci://ghcr.io/jsabo/charts/teleport-msteams-webhook \
+  --namespace teleport-plugins -f examples/kubernetes/values.yaml
+
+# Uninstall
+helm uninstall teleport-msteams-webhook --namespace teleport-plugins
+```
+
+---
+
 ## Linux / systemd install
 
 ### Step 1 — Install the plugin binary
@@ -233,85 +291,6 @@ Follow logs:
 
 ```bash
 journalctl -u teleport-msteams-webhook -f
-```
-
----
-
-## Kubernetes / Helm install
-
-The Helm chart deploys two containers in one pod sharing an `emptyDir` identity volume:
-- **tbot** (init container + sidecar) — joins the cluster and keeps the identity file refreshed
-- **teleport-msteams-webhook** — reads the identity file and watches for access request events
-
-### Step 1 — Create a ProvisionToken for the Kubernetes join method
-
-Save as `msteams-webhook-token.yaml` and apply with `tctl create -f msteams-webhook-token.yaml`:
-
-```yaml
-kind: token
-version: v2
-metadata:
-  name: msteams-webhook-k8s
-spec:
-  roles: [Bot]
-  bot_name: msteams-webhook
-  join_method: kubernetes
-  kubernetes:
-    allow:
-      - service_account: "<namespace>:teleport-msteams-webhook"
-```
-
-Replace `<namespace>` with the Kubernetes namespace where you will install the chart.
-
-See [Kubernetes join method](https://goteleport.com/docs/machine-workload-identity/deployment/kubernetes/) and [join methods overview](https://goteleport.com/docs/reference/deployment/join-methods/).
-
-### Step 2 — Install the Helm chart
-
-Use a `values.yaml` file — `role_to_recipients` contains special characters that don't work cleanly with `--set`:
-
-```yaml
-tbot:
-  teleportAddr: teleport.example.com:443
-  token: msteams-webhook-k8s
-
-teleport:
-  addr: teleport.example.com:443
-
-config:
-  roleToRecipients:
-    "dev":
-      - "https://prod.westus2.logic.azure.com/.../dev-requests"
-    "database-admin":
-      - "https://prod.westus2.logic.azure.com/.../dba-team"
-    "*":
-      - "https://prod.westus2.logic.azure.com/.../access-requests-general"
-```
-
-```bash
-helm install teleport-msteams-webhook \
-  oci://ghcr.io/jsabo/charts/teleport-msteams-webhook \
-  --namespace teleport-plugins \
-  --create-namespace \
-  -f values.yaml
-```
-
-### Step 3 — What the chart creates
-
-| Resource | Purpose |
-|---|---|
-| Deployment | tbot init container + sidecar + plugin container |
-| ConfigMap | Rendered `tbot.yaml` and `plugin.toml` |
-| ServiceAccount | Used by tbot for the Kubernetes TokenReview join |
-
-### Step 4 — Upgrade / uninstall
-
-```bash
-# Upgrade
-helm upgrade teleport-msteams-webhook oci://ghcr.io/jsabo/charts/teleport-msteams-webhook \
-  --namespace teleport-plugins -f values.yaml
-
-# Uninstall
-helm uninstall teleport-msteams-webhook --namespace teleport-plugins
 ```
 
 ---
