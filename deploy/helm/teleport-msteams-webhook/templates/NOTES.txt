@@ -1,0 +1,27 @@
+teleport-msteams-webhook has been installed.
+
+Check that the pod is running:
+
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+The pod has two containers: tbot (credential agent) and teleport-msteams-webhook (plugin).
+Both must be Running before access request notifications will be sent.
+
+Follow plugin logs:
+
+  kubectl logs -n {{ .Release.Namespace }} deployment/{{ include "teleport-msteams-webhook.fullname" . }} -c teleport-msteams-webhook -f
+
+Follow tbot logs:
+
+  kubectl logs -n {{ .Release.Namespace }} deployment/{{ include "teleport-msteams-webhook.fullname" . }} -c tbot -f
+
+Smoke test — create an access request and confirm a card appears in Teams:
+
+  tsh request create --roles=<role> --reason="testing msteams webhook"
+
+Troubleshooting:
+  - If tbot logs show "failed to join cluster", verify the ProvisionToken and service account match.
+  - If the plugin logs show "identity file not found", tbot may still be initializing — wait ~30s.
+  - If Teams shows no card, run the plugin with -dry-run locally to test webhook URLs directly.
+
+Documentation: https://github.com/jsabo/teleport-msteams-webhook

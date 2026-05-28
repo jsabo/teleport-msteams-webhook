@@ -120,5 +120,9 @@ func setupLogging(cfg config.LogConfig) {
 	case "error":
 		level = slog.LevelError
 	}
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: level})))
+	w := os.Stderr
+	if cfg.Output == "stdout" {
+		w = os.Stdout
+	}
+	slog.SetDefault(slog.New(slog.NewJSONHandler(w, &slog.HandlerOptions{Level: level})))
 }

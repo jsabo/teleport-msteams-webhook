@@ -239,18 +239,7 @@ See [Kubernetes join method](https://goteleport.com/docs/machine-workload-identi
 
 ### Step 2 — Install the Helm chart
 
-```bash
-helm install teleport-msteams-webhook \
-  oci://ghcr.io/jsabo/charts/teleport-msteams-webhook \
-  --namespace teleport-plugins \
-  --create-namespace \
-  --set tbot.teleportAddr=teleport.example.com:443 \
-  --set tbot.token=msteams-webhook-k8s \
-  --set teleport.addr=teleport.example.com:443 \
-  --set 'config.roleToRecipients.*[0]=https://prod.westus2.logic.azure.com/.../general'
-```
-
-For complex recipient maps, use a `values.yaml` file:
+Use a `values.yaml` file — `role_to_recipients` contains special characters that don't work cleanly with `--set`:
 
 ```yaml
 tbot:

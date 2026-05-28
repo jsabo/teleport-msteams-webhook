@@ -136,7 +136,7 @@ func BuildCard(reqID string, data RequestData, webProxyURL *url.URL, logoURL str
 				ContentType: "application/vnd.microsoft.card.adaptive",
 				ContentURL:  nil,
 				Content: adaptiveCard{
-					Schema:  "http://adaptivecards.io/schemas/adaptive-card.json",
+					Schema:  "https://adaptivecards.io/schemas/adaptive-card.json",
 					Type:    "AdaptiveCard",
 					Version: "1.4",
 					Body:    body,
