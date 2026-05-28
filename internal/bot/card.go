@@ -43,12 +43,13 @@ type column struct {
 }
 
 type textBlock struct {
-	Type   string `json:"type"`
-	Text   string `json:"text"`
-	Weight string `json:"weight,omitempty"`
-	Size   string `json:"size,omitempty"`
-	Color  string `json:"color,omitempty"`
-	Wrap   bool   `json:"wrap,omitempty"`
+	Type    string `json:"type"`
+	Text    string `json:"text"`
+	Weight  string `json:"weight,omitempty"`
+	Size    string `json:"size,omitempty"`
+	Color   string `json:"color,omitempty"`
+	Spacing string `json:"spacing,omitempty"`
+	Wrap    bool   `json:"wrap,omitempty"`
 }
 
 type factSet struct {
@@ -61,6 +62,12 @@ type fact struct {
 	Value string `json:"value"`
 }
 
+type container struct {
+	Type  string        `json:"type"`
+	Style string        `json:"style,omitempty"`
+	Items []interface{} `json:"items"`
+}
+
 type openURLAction struct {
 	Type  string `json:"type"`
 	Title string `json:"title"`
@@ -69,7 +76,8 @@ type openURLAction struct {
 
 // BuildCard constructs the Teams Adaptive Card payload for an access request event.
 // logoURL may be empty to omit the logo; webProxyURL may be nil to omit the action button.
-func BuildCard(reqID string, data RequestData, webProxyURL *url.URL, logoURL string) teamsMessage {
+// clusterName may be empty to omit the Cluster fact.
+func BuildCard(reqID string, data RequestData, webProxyURL *url.URL, clusterName, logoURL string) teamsMessage {
 	title, statusText, statusColor := resolveState(data.ResolutionTag)
 
 	var body []interface{}
@@ -104,19 +112,43 @@ func BuildCard(reqID string, data RequestData, webProxyURL *url.URL, logoURL str
 	})
 
 	facts := []fact{
-		{Title: "Requester", Value: data.User},
+		{Title: "ID", Value: reqID},
 	}
+	if clusterName != "" {
+		facts = append(facts, fact{Title: "Cluster", Value: clusterName})
+	}
+	facts = append(facts, fact{Title: "Requester", Value: data.User})
 	if len(data.Roles) > 0 {
 		facts = append(facts, fact{Title: "Roles", Value: strings.Join(data.Roles, ", ")})
 	}
-	if data.RequestReason != "" {
-		facts = append(facts, fact{Title: "Reason", Value: data.RequestReason})
-	}
-	if data.ResolutionReason != "" {
-		facts = append(facts, fact{Title: "Resolution", Value: data.ResolutionReason})
-	}
 
 	body = append(body, factSet{Type: "FactSet", Facts: facts})
+
+	if data.RequestReason != "" {
+		body = append(body,
+			textBlock{Type: "TextBlock", Text: "Reason", Weight: "Bolder", Spacing: "Medium"},
+			container{
+				Type:  "Container",
+				Style: "emphasis",
+				Items: []interface{}{
+					textBlock{Type: "TextBlock", Text: data.RequestReason, Wrap: true},
+				},
+			},
+		)
+	}
+
+	if data.ResolutionReason != "" {
+		body = append(body,
+			textBlock{Type: "TextBlock", Text: "Resolution", Weight: "Bolder", Spacing: "Medium"},
+			container{
+				Type:  "Container",
+				Style: "emphasis",
+				Items: []interface{}{
+					textBlock{Type: "TextBlock", Text: data.ResolutionReason, Wrap: true},
+				},
+			},
+		)
+	}
 
 	var actions []interface{}
 	if webProxyURL != nil {
@@ -150,14 +182,14 @@ func BuildCard(reqID string, data RequestData, webProxyURL *url.URL, logoURL str
 func resolveState(tag ResolutionTag) (title, status, color string) {
 	switch tag {
 	case Approved:
-		return "Access Request Approved", "APPROVED", "Good"
+		return "Access Request Approved", "✅ APPROVED", "Good"
 	case Denied:
-		return "Access Request Denied", "DENIED", "Warning"
+		return "Access Request Denied", "❌ DENIED", "Warning"
 	case Expired:
-		return "Access Request Expired", "EXPIRED", "Default"
+		return "Access Request Expired", "⏱ EXPIRED", "Default"
 	case Promoted:
-		return "Access Request Promoted", "PROMOTED", "Good"
+		return "Access Request Promoted", "✅ PROMOTED", "Good"
 	default:
-		return "New Access Request", "PENDING", "Attention"
+		return "New Access Request", "⏳ PENDING", "Attention"
 	}
 }

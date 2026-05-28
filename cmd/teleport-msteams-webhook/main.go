@@ -62,7 +62,7 @@ func run(configPath string, dryRun bool) error {
 	}
 	slog.InfoContext(ctx, "Connected to Teleport", "cluster", pong.ClusterName, "version", pong.ServerVersion)
 
-	b := bot.New(pong.ProxyPublicAddr, conf.EffectiveLogoURL())
+	b := bot.New(pong.ProxyPublicAddr, pong.ClusterName, conf.EffectiveLogoURL())
 
 	if dryRun {
 		return runDryRun(ctx, conf, b)

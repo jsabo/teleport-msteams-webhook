@@ -9,18 +9,21 @@ import (
 // Bot posts Adaptive Cards to Teams webhook URLs.
 type Bot struct {
 	webProxyURL *url.URL
+	clusterName string
 	logoURL     string
 	httpClient  *http.Client
 }
 
 // New constructs a Bot. webProxyAddr may be empty (cards omit the action button).
-func New(webProxyAddr, logoURL string) *Bot {
+// clusterName may be empty (cards omit the Cluster fact).
+func New(webProxyAddr, clusterName, logoURL string) *Bot {
 	var proxyURL *url.URL
 	if webProxyAddr != "" {
 		proxyURL = &url.URL{Scheme: "https", Host: webProxyAddr}
 	}
 	return &Bot{
 		webProxyURL: proxyURL,
+		clusterName: clusterName,
 		logoURL:     logoURL,
 		httpClient:  &http.Client{Timeout: requestTimeout},
 	}
@@ -28,6 +31,6 @@ func New(webProxyAddr, logoURL string) *Bot {
 
 // Post sends an Adaptive Card for reqID/data to webhookURL.
 func (b *Bot) Post(ctx context.Context, webhookURL string, reqID string, data RequestData) error {
-	card := BuildCard(reqID, data, b.webProxyURL, b.logoURL)
+	card := BuildCard(reqID, data, b.webProxyURL, b.clusterName, b.logoURL)
 	return postCard(ctx, b.httpClient, webhookURL, card)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func testCard() teamsMessage {
-	return BuildCard("req-test", RequestData{User: "alice", Roles: []string{"dev"}}, nil, "")
+	return BuildCard("req-test", RequestData{User: "alice", Roles: []string{"dev"}}, nil, "", "")
 }
 
 func TestPostCard_success(t *testing.T) {
