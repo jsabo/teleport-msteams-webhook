@@ -37,12 +37,17 @@ config:
     logoURL: ""
     disableLogo: false
 
+  # Name of a Kubernetes Secret whose keys are injected as env vars into the
+  # plugin container. Use "env:KEY" references in roleToRecipients to read URLs
+  # from the Secret without embedding them in the ConfigMap.
+  webhookSecretName: ""
+
   # Map Teleport roles to Teams incoming webhook URLs.
   # Any role not listed falls back to the "*" wildcard.
   # Example:
   # roleToRecipients:
   #   "dev": ["https://prod.westus2.logic.azure.com/.../dev"]
-  #   "*":   ["https://prod.westus2.logic.azure.com/.../general"]
+  #   "*":   ["env:TEAMS_WEBHOOK_GENERAL"]
   roleToRecipients: {}
 
 serviceAccount:
@@ -64,3 +69,20 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Extra volumes and mounts for the plugin container — use with "file:/path"
+# references in roleToRecipients to mount a Secret as a file.
+# Example: mount a Secret key at /run/secrets/teams-webhook-general
+#
+# extraVolumes:
+#   - name: webhook-secrets
+#     secret:
+#       secretName: my-teams-webhooks
+#
+# extraVolumeMounts:
+#   - name: webhook-secrets
+#     mountPath: /run/secrets
+#     readOnly: true
+
+extraVolumes: []
+extraVolumeMounts: []
