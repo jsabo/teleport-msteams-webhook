@@ -109,7 +109,7 @@ For production, consider a [platform join method](https://goteleport.com/docs/re
 
 ```yaml
 version: v2
-auth_server: teleport.example.com:443
+proxy_server: teleport.example.com:443
 
 onboarding:
   join_method: token

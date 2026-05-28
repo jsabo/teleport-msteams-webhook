@@ -1,7 +1,7 @@
 version: v2
 
-# Address of your Teleport Auth or Proxy server.
-auth_server: teleport.example.com:443
+# Address of your Teleport Proxy server.
+proxy_server: teleport.example.com:443
 
 # How tbot joins the cluster on first run.
 # "token" is simplest for initial setup; use "iam" on AWS or "gcp" on GCP in production.
