@@ -7,11 +7,10 @@ image:
 
 tbot:
   image:
-    repository: public.ecr.aws/gravitational/tbot
+    repository: public.ecr.aws/gravitational/tbot-distroless
     tag: "17"  # pin to a specific Teleport version in production
     pullPolicy: IfNotPresent
-    # Override the container entrypoint. Set to ["tbot"] when using the
-    # teleport-distroless image (which defaults to the "teleport" entrypoint).
+    # Override the container entrypoint. Only needed if using a non-standard image.
     command: []
 
   # Address of your Teleport Auth or Proxy server.
