@@ -24,8 +24,14 @@ Two-layer fallback (no access monitoring rules):
 2. Fall back to `"*"` wildcard entry
 3. Deduplicate across all resolved URLs
 
-Email-style strings in `role_to_recipients` are silently ignored — only `https://` URLs
-are accepted by `bot.Post`.
+URLs in `role_to_recipients` support three forms, all resolved at startup in
+`config.CheckAndSetDefaults()`:
+- `https://...` — plain webhook URL (stored as-is)
+- `env:VAR_NAME` — read from environment variable
+- `file:/path` — read from a file (Vault agent, k8s Secret mount, etc.)
+
+All resolved values are validated to use `https://` — the plugin refuses to start if
+any URL is invalid, the referenced env var is unset, or the referenced file is missing.
 
 ## Card logo
 

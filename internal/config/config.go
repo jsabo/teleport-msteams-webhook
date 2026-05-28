@@ -3,6 +3,8 @@ package config
 import (
 	"context"
 	"log/slog"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -84,11 +86,60 @@ func (c *Config) CheckAndSetDefaults() error {
 		return trace.BadParameter(`missing required value role_to_recipients["*"]`)
 	}
 
+	if err := resolveAndValidateRecipients(c.Recipients); err != nil {
+		return trace.Wrap(err)
+	}
+
 	if !c.MSTeams.DisableLogo && c.MSTeams.LogoURL == "" {
 		c.MSTeams.LogoURL = defaultLogoURL
 	}
 
 	return nil
+}
+
+// resolveAndValidateRecipients resolves env: and file: prefixes in webhook URLs
+// in-place and validates that all resolved values use https.
+func resolveAndValidateRecipients(recipients map[string][]string) error {
+	for role, urls := range recipients {
+		for i, raw := range urls {
+			resolved, err := resolveWebhookURL(raw)
+			if err != nil {
+				return trace.BadParameter("role_to_recipients[%q][%d] %q: %v", role, i, raw, err)
+			}
+			if !strings.HasPrefix(resolved, "https://") {
+				return trace.BadParameter("role_to_recipients[%q][%d] %q: webhook URLs must use https", role, i, raw)
+			}
+			recipients[role][i] = resolved
+		}
+	}
+	return nil
+}
+
+// resolveWebhookURL resolves a single URL value, expanding env: and file: prefixes.
+// Plain https:// URLs are returned as-is.
+func resolveWebhookURL(s string) (string, error) {
+	switch {
+	case strings.HasPrefix(s, "env:"):
+		name := strings.TrimPrefix(s, "env:")
+		val := os.Getenv(name)
+		if val == "" {
+			return "", trace.Errorf("environment variable %q is not set or empty", name)
+		}
+		return val, nil
+	case strings.HasPrefix(s, "file:"):
+		path := strings.TrimPrefix(s, "file:")
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return "", trace.Wrap(err)
+		}
+		val := strings.TrimSpace(string(data))
+		if val == "" {
+			return "", trace.Errorf("file %q is empty", path)
+		}
+		return val, nil
+	default:
+		return s, nil
+	}
 }
 
 // EffectiveLogoURL returns the logo URL to use in cards, respecting DisableLogo.

@@ -36,6 +36,24 @@ Repeat for each channel. Paste the URLs into `role_to_recipients` in your config
 
 > **Note:** Microsoft deprecated Office 365 Connectors in 2024. The Power Automate Workflows method above is the current replacement.
 
+### Storing webhook URLs securely
+
+Instead of hardcoding webhook URLs in the config file, you can reference environment variables or secret-mount files:
+
+```toml
+[role_to_recipients]
+# Read from an environment variable
+"dev" = ["env:TEAMS_WEBHOOK_DEV"]
+
+# Read from a file (Vault agent, Kubernetes Secret mount, AWS Secrets Manager sidecar, etc.)
+"*"   = ["file:/run/secrets/teams-webhook-general"]
+
+# Plain URL still works
+"ops" = ["https://prod.westus2.logic.azure.com/.../ops"]
+```
+
+The value in the env var or file must be the full `https://` webhook URL. All URLs (plain or resolved) are validated to use HTTPS at startup — the plugin will not start if a URL is invalid or a referenced variable/file is missing.
+
 ---
 
 ## Teleport setup
