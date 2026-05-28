@@ -48,6 +48,8 @@ spec:
         verbs: [list, read]
       - resources: [access_monitoring_rule]
         verbs: [list, read]
+      - resources: [role]
+        verbs: [list, read]
 ---
 kind: bot
 version: v1

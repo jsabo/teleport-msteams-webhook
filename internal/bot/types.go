@@ -15,6 +15,8 @@ const (
 type RequestData struct {
 	User             string
 	Roles            []string
+	LoginsByRole     map[string][]string
+	Resources        []string
 	RequestReason    string
 	ResolutionTag    ResolutionTag
 	ResolutionReason string

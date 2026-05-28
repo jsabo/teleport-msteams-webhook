@@ -12,6 +12,49 @@ import (
 	"github.com/jsabo/teleport-msteams-webhook/internal/bot"
 )
 
+// requestData builds a RequestData from an AccessRequest, fetching supplemental
+// role and resource information from the Teleport API where available.
+func requestData(ctx context.Context, clt *client.Client, req types.AccessRequest) bot.RequestData {
+	data := bot.RequestData{
+		User:          req.GetUser(),
+		Roles:         req.GetRoles(),
+		RequestReason: req.GetRequestReason(),
+		Resources:     resourceStrings(req),
+		LoginsByRole:  loginsByRole(ctx, clt, req.GetRoles()),
+	}
+	return data
+}
+
+func resourceStrings(req types.AccessRequest) []string {
+	ids := req.GetRequestedResourceIDs()
+	if len(ids) == 0 {
+		return nil
+	}
+	out := make([]string, len(ids))
+	for i, id := range ids {
+		out[i] = types.ResourceIDToString(id)
+	}
+	return out
+}
+
+func loginsByRole(ctx context.Context, clt *client.Client, roles []string) map[string][]string {
+	result := make(map[string][]string, len(roles))
+	for _, roleName := range roles {
+		role, err := clt.GetRole(ctx, roleName)
+		if err != nil {
+			if trace.IsAccessDenied(err) {
+				slog.WarnContext(ctx, "Missing role:read permission, omitting Login(s) from card", "error", err)
+				return nil
+			}
+			slog.WarnContext(ctx, "Failed to fetch role for login info", "role", roleName, "error", err)
+			result[roleName] = nil
+			continue
+		}
+		result[roleName] = role.GetLogins(types.Allow)
+	}
+	return result
+}
+
 const (
 	initialBackoff = time.Second
 	maxBackoff     = 60 * time.Second
@@ -97,11 +140,7 @@ func (p *Plugin) handleEvent(ctx context.Context, event types.Event) error {
 	}
 
 	reqID := req.GetName()
-	data := bot.RequestData{
-		User:          req.GetUser(),
-		Roles:         req.GetRoles(),
-		RequestReason: req.GetRequestReason(),
-	}
+	data := requestData(ctx, p.client, req)
 
 	switch {
 	case req.GetState().IsPending():

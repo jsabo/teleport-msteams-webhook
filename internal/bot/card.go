@@ -2,6 +2,8 @@ package bot
 
 import (
 	"net/url"
+	"slices"
+	"sort"
 	"strings"
 )
 
@@ -118,8 +120,22 @@ func BuildCard(reqID string, data RequestData, webProxyURL *url.URL, clusterName
 		facts = append(facts, fact{Title: "Cluster", Value: clusterName})
 	}
 	facts = append(facts, fact{Title: "Requester", Value: data.User})
-	if len(data.Roles) > 0 {
+
+	if len(data.LoginsByRole) > 0 {
+		sortedRoles := sortedKeys(data.LoginsByRole)
+		for _, role := range sortedRoles {
+			logins := strings.Join(sortStrings(data.LoginsByRole[role]), ", ")
+			if logins == "" {
+				logins = "-"
+			}
+			facts = append(facts, fact{Title: role, Value: "Login(s): " + logins})
+		}
+	} else if len(data.Roles) > 0 {
 		facts = append(facts, fact{Title: "Roles", Value: strings.Join(data.Roles, ", ")})
+	}
+
+	if len(data.Resources) > 0 {
+		facts = append(facts, fact{Title: "Resources", Value: strings.Join(data.Resources, ", ")})
 	}
 
 	body = append(body, factSet{Type: "FactSet", Facts: facts})
@@ -177,6 +193,22 @@ func BuildCard(reqID string, data RequestData, webProxyURL *url.URL, clusterName
 			},
 		},
 	}
+}
+
+func sortedKeys(m map[string][]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func sortStrings(s []string) []string {
+	out := make([]string, len(s))
+	copy(out, s)
+	slices.Sort(out)
+	return out
 }
 
 func resolveState(tag ResolutionTag) (title, status, color string) {
