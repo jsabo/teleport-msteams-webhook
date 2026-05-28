@@ -41,6 +41,9 @@ spec:
         - name: tbot-init
           image: "{{ .Values.tbot.image.repository }}:{{ .Values.tbot.image.tag }}"
           imagePullPolicy: {{ .Values.tbot.image.pullPolicy }}
+          {{- with .Values.tbot.image.command }}
+          command: {{- toYaml . | nindent 12 }}
+          {{- end }}
           args:
             - start
             - --config=/etc/tbot/tbot.yaml
@@ -59,6 +62,9 @@ spec:
         - name: tbot
           image: "{{ .Values.tbot.image.repository }}:{{ .Values.tbot.image.tag }}"
           imagePullPolicy: {{ .Values.tbot.image.pullPolicy }}
+          {{- with .Values.tbot.image.command }}
+          command: {{- toYaml . | nindent 12 }}
+          {{- end }}
           args:
             - start
             - --config=/etc/tbot/tbot.yaml

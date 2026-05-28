@@ -10,6 +10,9 @@ tbot:
     repository: public.ecr.aws/gravitational/tbot
     tag: "17"  # pin to a specific Teleport version in production
     pullPolicy: IfNotPresent
+    # Override the container entrypoint. Set to ["tbot"] when using the
+    # teleport-distroless image (which defaults to the "teleport" entrypoint).
+    command: []
 
   # Address of your Teleport Auth or Proxy server.
   teleportAddr: "teleport.example.com:443"
