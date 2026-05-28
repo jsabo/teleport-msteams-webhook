@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/gravitational/trace"
@@ -112,7 +113,7 @@ func runDryRun(ctx context.Context, conf *config.Config, b *bot.Bot) error {
 
 func setupLogging(cfg config.LogConfig) {
 	level := slog.LevelInfo
-	switch cfg.Severity {
+	switch strings.ToLower(cfg.Severity) {
 	case "debug":
 		level = slog.LevelDebug
 	case "warn", "warning":

@@ -43,11 +43,10 @@ func loginsByRole(ctx context.Context, clt *client.Client, roles []string) map[s
 		role, err := clt.GetRole(ctx, roleName)
 		if err != nil {
 			if trace.IsAccessDenied(err) {
-				slog.WarnContext(ctx, "Missing role:read permission, omitting Login(s) from card", "error", err)
-				return nil
+				slog.WarnContext(ctx, "Missing role:read permission, omitting Login(s) from card", "role", roleName, "error", err)
+				continue
 			}
 			slog.WarnContext(ctx, "Failed to fetch role for login info", "role", roleName, "error", err)
-			result[roleName] = nil
 			continue
 		}
 		result[roleName] = role.GetLogins(types.Allow)
@@ -160,6 +159,9 @@ func (p *Plugin) handleEvent(ctx context.Context, event types.Event) error {
 		data.ResolutionTag = bot.Promoted
 		data.ResolutionReason = req.GetResolveReason()
 		return p.postToRecipients(ctx, reqID, data, req.GetRoles())
+
+	default:
+		slog.DebugContext(ctx, "Ignoring access request state", "state", req.GetState(), "request_id", reqID)
 	}
 
 	return nil
